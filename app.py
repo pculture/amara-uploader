@@ -83,7 +83,10 @@ def login():
         resp = _make_api_request('get', '/teams/')
         if resp.status_code != 401:
             return redirect(url_for('index'))
-    return render_template('login.html')
+    ctx = {
+        'AMARA_ENDPOINT': app.config['amara_api_endpoint'],
+    }
+    return render_template('login.html', **ctx)
 
 @app.route('/upload/', methods=['POST'])
 def upload():
