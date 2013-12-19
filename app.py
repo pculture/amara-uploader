@@ -116,6 +116,9 @@ def upload():
             'video_url': s3_url,
         }
         resp = _make_api_request('post', '/videos/', data=json.dumps(data))
+        if resp.status_code != 200:
+            flash('You do not have access to that team', 'danger')
+            return redirect(url_for('index'))
         video_data = json.loads(resp.content)
         if not video_data.has_key('id'):
             flash('Video already exists...', 'danger')
