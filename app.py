@@ -98,6 +98,8 @@ def upload():
         filename = secure_filename(file.filename)
         sha = hashlib.sha256()
         sha.update(session['username'])
+        sha.update(video_title)
+        sha.update(video_lang)
         sha.update(filename)
         s3_filename = str(sha.hexdigest()) + '.mp4'
         local_path = os.path.join(app.config['UPLOAD_DIR'], s3_filename)
@@ -116,7 +118,7 @@ def upload():
             'video_url': s3_url,
         }
         resp = _make_api_request('post', '/videos/', data=json.dumps(data))
-        if resp.status_code != 200:
+        if resp.status_code != 201:
             flash('You do not have access to that team', 'danger')
             return redirect(url_for('index'))
         video_data = json.loads(resp.content)
