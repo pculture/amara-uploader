@@ -9,6 +9,8 @@ import hashlib
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 import json
+import time
+from slugify import slugify
 
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', tempfile.gettempdir())
 ALLOWED_EXTENSIONS = set(['mp4'])
@@ -23,7 +25,7 @@ app.secret_key = os.getenv('SECRET_KEY',
         '\xd8\x9c\x1a\xe7|\xce\x15\xe4\xa2\xfd\x97B\x8dK\xee|\x08!\x9e\xef[\xc9u4')
 app.config['amara_api_endpoint'] = os.getenv('AMARA_API_ENDPOINT',
         'https://www.amara.org')
-app.config['amara_api_url_base'] = '/api2/partners'
+app.config['amara_api_url_base'] = '/api'
 app.config['api_url'] = app.config['amara_api_endpoint'] + \
         app.config['amara_api_url_base']
 
@@ -34,9 +36,9 @@ def allowed_file(filename):
 def _make_api_request(method='GET', path='/', data=None):
     url = app.config['api_url'] + path
     headers = {
-        'Accept': 'application/json',
-        'X-api-username': session.get('username'),
-        'X-apikey': session.get('api_key'),
+        'Content-Type': 'application/json',
+        'X-Api-Username': session.get('username'),
+        'X-Api-Key': session.get('api_key'),
     }
     methods = {
         'get': requests.get,
@@ -60,12 +62,24 @@ def upload_to_s3(filename):
 @app.route('/')
 def index():
     if 'username' in session and 'api_key' in session:
-        resp = _make_api_request('get', '/teams/?limit=0')
-        teams = json.loads(resp.content)
+        resp = _make_api_request('get', '/teams/?limit=100&offset=0')
+        teams = (json.loads(resp.content)).get('objects')
+        count = ((json.loads(resp.content)).get('meta')).get('total_count')
+        i = 1
+        while (100*i) < count:
+            offset = i * 100
+            #print str(i)
+            resp2 = _make_api_request('get', '/teams/?limit=100&offset='+str(offset))
+            moreteams = (json.loads(resp2.content)).get('objects')
+            #print moreteams
+            teams += moreteams
+            #print teams
+            #print len(teams)
+            i += 1
         ctx = {
             'username': session['username'],
             'api_key': session['api_key'],
-            'teams': teams.get('objects'),
+            'teams': teams,
         }
         return render_template('index.html', **ctx)
     else:
@@ -90,47 +104,71 @@ def login():
 
 @app.route('/upload/', methods=['POST'])
 def upload():
-    file = request.files['file']
-    if file and allowed_file(file.filename):
-        video_title = request.form['video-title']
-        video_lang = request.form['video-lang']
-        team_slug = request.form['team']
-        filename = secure_filename(file.filename)
-        sha = hashlib.sha256()
-        sha.update(session['username'])
-        sha.update(video_title)
-        sha.update(video_lang)
-        sha.update(filename)
-        s3_filename = str(sha.hexdigest()) + '.mp4'
-        local_path = os.path.join(app.config['UPLOAD_DIR'], s3_filename)
-        # save local
-        file.save(local_path)
-        # upload to s3
-        key = upload_to_s3(local_path)
-        # cleanup
-        os.remove(local_path)
-        s3_url = key.generate_url(expires_in=0, query_auth=False,
-                force_http=True)
-        # create video in amara
-        data = {
-            'title': video_title,
-            'primary_audio_language_code': video_lang,
-            'video_url': s3_url,
-        }
-        resp = _make_api_request('post', '/videos/', data=json.dumps(data))
-        if resp.status_code != 201:
-            flash('You do not have access to that team', 'danger')
-            return redirect(url_for('index'))
-        video_data = json.loads(resp.content)
-        if not video_data.has_key('id'):
-            flash('Video already exists...', 'danger')
-            return redirect(url_for('index'))
-        # add to team in amara
-        data = {
-            'team': team_slug,
-        }
-        resp = _make_api_request('PUT', '/videos/{}/'.format(video_data.get('id')),
-                data=json.dumps(data))
+    files = request.files.getlist("file")
+    #file = request.files['file']
+    video_lang = request.form['video-lang']
+    team_slug = request.form['team']
+    project_slug = request.form['project']
+    if project_slug != '':
+        resp = _make_api_request('get', '/teams/'+team_slug+'/projects/'+project_slug+'/')
+        if resp.status_code != 200:
+            data = {
+                'name':project_slug,
+                'slug': project_slug
+            }
+            resp = _make_api_request('post', '/teams/'+team_slug+'/projects/',data=json.dumps(data))
+            print resp.status_code
+    for file in files:
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            video_title = filename #request.form['video-title']
+            sha = hashlib.sha256()
+            sha.update(session['username'])
+            sha.update(video_title)
+            sha.update(video_lang)
+            sha.update(filename)
+            #s3_filename = str(sha.hexdigest()) + '.mp4'
+            s3_filename = time.strftime("%Y_%m_%d_%H_%M_%S_") + slugify(video_title) + '.mp4'
+            local_path = os.path.join(app.config['UPLOAD_DIR'], s3_filename)
+            # save local
+            file.save(local_path)
+            # upload to s3
+            key = upload_to_s3(local_path)
+            # cleanup
+            os.remove(local_path)
+            s3_url = key.generate_url(expires_in=0, query_auth=False,
+                     force_http=True)
+            print s3_url
+            # create video in amara
+            data = {
+                'title': video_title,
+                'primary_audio_language_code': video_lang,
+                'video_url': s3_url,
+            }
+            resp = _make_api_request('post', '/videos/', data=json.dumps(data))
+            print resp.status_code
+            """
+            if resp.status_code != 201:
+                flash('You do not have access to that team', 'danger')
+                return redirect(url_for('index'))
+            """
+            video_data = json.loads(resp.content)
+            #print video_data
+            if not video_data.has_key('id'):
+                flash('Video already exists...', 'danger')
+                return redirect(url_for('index'))
+            # add to team in amara
+            if project_slug != '':
+                data = {
+                    'team': team_slug,
+                    'project': project_slug,
+                }
+            else:
+                data = {
+                    'team': team_slug
+                }
+            resp = _make_api_request('PUT', '/videos/{}/'.format(video_data.get('id')),
+                    data=json.dumps(data))
     return redirect(url_for('index'))
 
 @app.route('/logout/')

@@ -17,10 +17,6 @@
 <div id="content">
     <form id="upload" role="form" method="POST" enctype="multipart/form-data" action="{{url_for('upload')}}">
         <div class="form-group">
-            <label for="video-title">Video Title</label>
-            <input type="text" class="form-control" id="video-title" name="video-title" placeholder="My Video">
-        </div>
-        <div class="form-group">
             <label for="primary-language">Primary Language Code</label>
             <input type="text" class="form-control" id="primary-language" name="video-lang" placeholder="Language Code (i.e. 'en')">
         </div>
@@ -34,8 +30,12 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="video-file">Video File (.mp4)</label>
-            <input type="file" id="video-file" name="file">
+            <label for="project">Project. Leave blank if you do not wish to place videos in a specific project</label>
+            <input type="text" class="form-control" id="project" name="project" placeholder="Slug for the target project (i.e. 'batch-11-22415')">
+        </div>
+        <div class="form-group">
+            <label for="video-file">Select video files (.mp4) to upload</label>
+            <input type="file" id="file-picker" name="file" accept="video/*" multiple><p>
         </div>
         <button type="submit" class="btn btn-success btn-lg">Upload</button>
   </form>
