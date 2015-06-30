@@ -17,11 +17,16 @@
 <div id="content">
     <form id="upload" role="form" method="POST" enctype="multipart/form-data" action="{{url_for('upload')}}">
         <div class="form-group">
-            <label for="primary-language">Primary Language Code</label>
-            <input type="text" class="form-control" id="primary-language" name="video-lang" placeholder="Language Code (i.e. 'en')">
+            <label for="primary-language">Primary Language Code (mandatory)</label>
+            <select name="video-lang" class="form-control">
+                <option value="">-- Select language --</option
+                {% for language in languages %}
+                <option value="{{language[0]}}">{{language[1]}}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="form-group">
-            <label for="team">Team</label>
+            <label for="team">Team (mandatory)</label>
             <select name="team" class="form-control">
                 <option value="">-----</option
                 {% for team in teams %}
@@ -30,11 +35,11 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="project">Project. Leave blank if you do not wish to place videos in a specific project</label>
+            <label for="project">Project (optional - leave blank if you do not wish to place videos in a specific project)</label>
             <input type="text" class="form-control" id="project" name="project" placeholder="Slug for the target project (i.e. 'batch-11-22415')">
         </div>
         <div class="form-group">
-            <label for="video-file">Select video files (.mp4) to upload</label>
+            <label for="video-file">Select video files (.mp4) to upload (mandatory)</label>
             <input type="file" id="file-picker" name="file" accept="video/*" multiple><p>
         </div>
         <button type="submit" class="btn btn-success btn-lg">Upload</button>
