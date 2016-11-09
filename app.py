@@ -24,7 +24,7 @@ app.config['S3_PATH'] = os.getenv('S3_PATH', '')
 app.secret_key = os.getenv('SECRET_KEY',
         '\xd8\x9c\x1a\xe7|\xce\x15\xe4\xa2\xfd\x97B\x8dK\xee|\x08!\x9e\xef[\xc9u4')
 app.config['amara_api_endpoint'] = os.getenv('AMARA_API_ENDPOINT',
-        'https://www.amara.org')
+        'https://amara.org')
 app.config['amara_api_url_base'] = '/api'
 app.config['api_url'] = app.config['amara_api_endpoint'] + \
         app.config['amara_api_url_base']
