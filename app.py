@@ -49,10 +49,14 @@ def _make_api_request(method='GET', path='/', data=None):
     return methods[method.lower()](url, data=data, headers=headers)
 
 def upload_to_s3(filename):
+    print "Uploading to s3"
     aws_id = app.config['AWS_ACCESS_KEY_ID']
+    print "Using access key id " + aws_id
     aws_key = app.config['AWS_SECRET_ACCESS_KEY']
     bucket = app.config['S3_BUCKET']
+    print "Sending to bucket " + bucket
     s3_conn = S3Connection(aws_id, aws_key)
+    print "Connected to AWS"
     bucket = s3_conn.get_bucket(bucket)
     print "Connected to S3 bucket"
     k = Key(bucket)
