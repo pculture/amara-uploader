@@ -152,8 +152,7 @@ def upload():
             # cleanup
             os.remove(local_path)
             print "Removed file from local path"
-            s3_url = key.generate_url(expires_in=0, query_auth=False,
-                     force_http=True)
+            s3_url = key.generate_url(expires_in=0, query_auth=False)
             print s3_url
             # create video in amara
             data = {
