@@ -1,0 +1,11 @@
+sudo: required
+langauge: python
+python:
+  - "2.7"
+services:
+  - docker
+before_install:
+- docker build . -t amara-uploader
+- docker run -d -p 127.0.0.1:8000:5000 --name amara-uploader amara-uploader
+script:
+  - docker ps | grep -q amara-uploader
