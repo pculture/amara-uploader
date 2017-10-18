@@ -1,4 +1,6 @@
 sudo: required
-
 services:
   - docker
+before_install:
+- docker pull .
+- docker run -p 127.0.0.1:80:5000
