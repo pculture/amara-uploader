@@ -67,7 +67,7 @@ def upload_to_s3(filename):
 @app.route('/')
 def index():
     if 'username' in session and 'api_key' in session:
-        resp = _make_api_request('get', '/languages')
+        resp = _make_api_request('get', '/languages/')
         language_dict = (json.loads(resp.content)).get('languages')
         languages = sorted(language_dict.items(), key = lambda x: x[1])
         resp = _make_api_request('get', '/teams/?limit=100&offset=0')
