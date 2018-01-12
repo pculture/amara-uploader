@@ -1,0 +1,15 @@
+amara-uploader:
+  build:
+    image: 241878618260.dkr.ecr.us-east-1.amazonaws.com/amara-uploader
+    dockerfile: Dockerfile
+  cached: true
+deploy-agent:
+  image: 241878618260.dkr.ecr.us-east-1.amazonaws.com/deploy-agent
+  encrypted_env_file: creds.encrypted
+  dockercfg_service: aws_generator
+aws_generator: 
+  image: codeship/aws-ecr-dockercfg-generator
+  encrypted_env_file: creds.encrypted
+  add_docker: true
+  environment:
+    AWS_REGION: us-east-1
