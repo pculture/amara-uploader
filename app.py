@@ -10,6 +10,7 @@ from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 import json
 import time
+from urlparse import urlparse
 from slugify import slugify
 
 UPLOAD_DIR = os.getenv('UPLOAD_DIR', tempfile.gettempdir())
@@ -149,6 +150,10 @@ def upload():
             os.remove(local_path)
             print "Removed file from local path"
             s3_url = key.generate_url(expires_in=0, query_auth=False)
+            # Remove the querystring, apparently it sometimes get generated
+            # even when query_auth is false
+            # (https://github.com/boto/boto/issues/1477)
+            s3_url = urlparse(s3_url)._replace(query='').geturl()
             print s3_url
             # create video in amara
             data = {

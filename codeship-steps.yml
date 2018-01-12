@@ -5,6 +5,6 @@
   image_tag: "{{.CommitID}}"
   registry: https://241878618260.dkr.ecr.us-east-1.amazonaws.com
   dockercfg_service: aws_generator
-# - name: Deploy
-#   service: deploy-agent
-#   command: uploader
+- name: Deploy
+  service: deploy-agent
+  command: uploader
