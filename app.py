@@ -17,8 +17,6 @@ ALLOWED_EXTENSIONS = set(['mp4'])
 
 app = Flask(__name__)
 app.config['UPLOAD_DIR'] = UPLOAD_DIR
-app.config['AWS_ACCESS_KEY_ID'] = os.getenv('AWS_ACCESS_KEY_ID')
-app.config['AWS_SECRET_ACCESS_KEY'] = os.getenv('AWS_SECRET_ACCESS_KEY')
 app.config['S3_BUCKET'] = os.getenv('S3_BUCKET')
 app.config['S3_PATH'] = os.getenv('S3_PATH', '')
 app.secret_key = os.getenv('SECRET_KEY',
@@ -49,10 +47,8 @@ def _make_api_request(method='GET', path='/', data=None):
     return methods[method.lower()](url, data=data, headers=headers)
 
 def upload_to_s3(filename):
-    aws_id = app.config['AWS_ACCESS_KEY_ID']
-    aws_key = app.config['AWS_SECRET_ACCESS_KEY']
     bucket = app.config['S3_BUCKET']
-    s3_conn = S3Connection(aws_id, aws_key)
+    s3_conn = S3Connection()
     bucket = s3_conn.get_bucket(bucket)
     print "Connected to S3 bucket"
     k = Key(bucket)

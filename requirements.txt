@@ -3,7 +3,7 @@ Jinja2==2.7.1
 MarkupSafe==0.18
 Werkzeug==0.9.4
 argparse==1.2.1
-boto==2.20.1
+boto==2.48.0
 itsdangerous==0.23
 requests==2.1.0
 wsgiref==0.1.2
