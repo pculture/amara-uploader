@@ -8,3 +8,4 @@
 - name: Deploy
   service: deploy-agent
   command: uploader
+  tag: master
